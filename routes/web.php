@@ -4,10 +4,18 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\CreditApplicationController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\TrackingController;
 
 Route::get('/', function () {
     return view('welcome');
 });
+
+// Rute untuk menampilkan form pelacakan
+Route::get('/track', [TrackingController::class, 'showForm'])->name('track.form');
+
+// Rute untuk menampilkan hasil status
+Route::get('/track/status', [TrackingController::class, 'showStatus'])->name('track.status');
+
 
 // Rute untuk proses otentikasi dengan Google
 Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect'])->name('google.redirect');
