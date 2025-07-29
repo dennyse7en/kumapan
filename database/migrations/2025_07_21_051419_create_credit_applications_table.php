@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('credit_applications', function (Blueprint $table) {
             $table->id();
             $table->string('submission_id')->unique(); // ID unik spt KRD-00123
-            $table->foreignId('users_id')->constrained()->onDelete('cascade'); // Relasi ke tabel users
+            $table->foreignId('user_id')->constrained()->onDelete('cascade'); // Relasi ke tabel users
             // === Data Diri Pemohon ===
             $table->string('ktp_number');
             $table->string('ktp_photo_path');

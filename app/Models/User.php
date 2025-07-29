@@ -47,4 +47,12 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
         ];
     }
+
+    /**
+     * Get all of the credit applications for the User.
+     */
+    public function creditApplications()
+    {
+        return $this->hasMany(CreditApplication::class);
+    }
 }
