@@ -44,7 +44,7 @@ class CreditApplicationResource extends Resource
                     // Pastikan semua field dibuat 'disabled()' agar admin tidak bisa mengubah data asli pengguna
                     TextInput::make('amount')->label('Jumlah Pengajuan')->disabled()->numeric(),
                     TextInput::make('tenor')->label('Jangka Waktu (Bulan)')->disabled(),
-                    
+
                     // Kolom yang diisi oleh Tim Internal
                     Textarea::make('notes')->label('Catatan Internal'),
                     Select::make('status')
@@ -54,8 +54,31 @@ class CreditApplicationResource extends Resource
                             'Menunggu Persetujuan' => 'Menunggu Persetujuan',
                             'Disetujui' => 'Disetujui',
                             'Ditolak' => 'Ditolak',
+                            // ... opsi status ...
+                            'Lunas' => 'Lunas',
                         ])
-                        ->required(),
+                        ->required()
+                        ->reactive()
+                        ->afterStateUpdated(function (callable $set, $state) {
+                            if ($state === 'Disetujui') {
+                                $set('approved_at', now());
+                            }
+                        })
+                        // GANTI $option MENJADI $value DI SINI
+                        ->disableOptionWhen(function (string $value, ?CreditApplication $record): bool {
+                            // Logika hanya berjalan untuk pilihan 'Lunas'
+                            if ($value !== 'Lunas' || !$record) {
+                                return false;
+                            }
+
+                            // Nonaktifkan "Lunas" jika status saat ini bukan "Disetujui"
+                            // atau jika tanggal persetujuan belum lewat 30 hari
+                            return $record->status !== 'Disetujui' ||
+                                (is_null($record->approved_at) || $record->approved_at->gt(Carbon::now()->subDays(30)));
+                        }),
+                    Forms\Components\DateTimePicker::make('approved_at')
+                        ->label('Tanggal Persetujuan')
+                        ->disabled(),
                 ])
             ]);
     }
@@ -72,9 +95,10 @@ class CreditApplicationResource extends Resource
                 BadgeColumn::make('status') // Menggunakan badge untuk visual yang lebih baik [cite: 40]
                     ->colors([
                         'primary',
-                        'warning' => fn ($state): bool => in_array($state, ['Menunggu Verifikasi', 'Sedang Direview', 'Menunggu Persetujuan']),
-                        'success' => fn ($state): bool => $state === 'Disetujui',
-                        'danger' => fn ($state): bool => $state === 'Ditolak',
+                        'warning' => fn($state): bool => in_array($state, ['Menunggu Verifikasi', 'Sedang Direview', 'Menunggu Persetujuan']),
+                        // UBAH 'Disetujui' menjadi 'Lunas' atau tambahkan keduanya
+                        'success' => fn($state): bool => in_array($state, ['Disetujui', 'Lunas']),
+                        'danger' => fn($state): bool => $state === 'Ditolak',
                     ])->searchable(),
             ])
             ->filters([

@@ -13,6 +13,10 @@ class CreditApplication extends Model
     // Izinkan pengisian massal untuk kolom-kolom ini
     protected $guarded = ['id'];
 
+    protected $casts = [
+        'approved_at' => 'datetime', // Pastikan kolom ini diperlakukan sebagai objek tanggal
+    ];
+
     /**
      * Mendapatkan user yang memiliki pengajuan kredit ini.
      */

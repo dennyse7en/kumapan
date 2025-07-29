@@ -14,9 +14,17 @@ class CreditApplicationController extends Controller
      */
     public function index()
     {
+        $user = Auth::user();
         $applications = Auth::user()->creditApplications()->latest()->get();
 
-        return view('dashboard', ['applications' => $applications]);
+        $activeApplicationExists = $user->creditApplications()
+            ->whereNotIn('status', ['Ditolak', 'Lunas']) // Status yang dianggap selesai
+            ->exists();
+
+        return view('dashboard', [
+            'applications' => $applications,
+            'canApply' => !$activeApplicationExists // Kirim status bisa mengajukan ke view
+        ]);
     }
 
     /**
@@ -24,6 +32,15 @@ class CreditApplicationController extends Controller
      */
     public function create()
     {
+        $activeApplicationExists = Auth::user()->creditApplications()
+            ->whereNotIn('status', ['Ditolak', 'Lunas'])
+            ->exists();
+
+        if ($activeApplicationExists) {
+            // Jika masih ada pengajuan aktif, kembalikan ke dashboard dengan pesan error
+            return redirect()->route('dashboard')->with('error', 'Anda tidak dapat membuat pengajuan baru karena masih ada pengajuan yang aktif.');
+        }
+
         return view('credit.create');
     }
 
@@ -32,6 +49,13 @@ class CreditApplicationController extends Controller
      */
     public function store(Request $request)
     {
+        $activeApplicationExists = Auth::user()->creditApplications()
+            ->whereNotIn('status', ['Ditolak', 'Lunas'])
+            ->exists();
+
+        if ($activeApplicationExists) {
+            return redirect()->route('dashboard')->with('error', 'Gagal menyimpan. Anda sudah memiliki pengajuan yang aktif.');
+        }
         // Validasi input
         $validated = $request->validate([
             'full_name' => 'required|string|max:255',
