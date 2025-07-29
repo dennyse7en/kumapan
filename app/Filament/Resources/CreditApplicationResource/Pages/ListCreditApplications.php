@@ -1,49 +1,39 @@
 <?php
 
+// app/Filament/Resources/CreditApplicationResource/Pages/ListCreditApplications.php
+
 namespace App\Filament\Resources\CreditApplicationResource\Pages;
 
 use App\Filament\Resources\CreditApplicationResource;
-use App\Models\CreditApplication;
-use Filament\Pages\Actions;
+use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
-use Filament\Resources\Pages\ListRecords\Tab;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Builder; // Import class Builder
 
 class ListCreditApplications extends ListRecords
 {
-protected static string $resource = CreditApplicationResource::class;
+    protected static string $resource = CreditApplicationResource::class;
 
-protected function getActions(): array
-{
-    return [
-        // Tombol "New" tidak diperlukan di sini karena pengajuan dibuat oleh pengguna
-        // Actions\CreateAction::make(), 
-    ];
-}
-
-/**
- * Mendefinisikan Tabs untuk filtering.
- */
-public function getTabs(): array
-{
-    return [
-        'all' => Tab::make('Semua Pengajuan')
-            ->modifyQueryUsing(fn (Builder $query) => $query),
-
-        'Menunggu Verifikasi' => Tab::make('Menunggu Verifikasi')
-            ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'Menunggu Verifikasi'))
-            ->badge(CreditApplication::where('status', 'Menunggu Verifikasi')->count()),
-
-        'Sedang Direview' => Tab::make('Perlu Diproses Operator')
-            ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'Sedang Direview'))
-            ->badge(CreditApplication::where('status', 'Sedang Direview')->count()),
-
-        'Menunggu Persetujuan' => Tab::make('Menunggu Persetujuan')
-            ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'Menunggu Persetujuan'))
-            ->badge(CreditApplication::where('status', 'Menunggu Persetujuan')->count()),
-
-        'completed' => Tab::make('Selesai')
-            ->modifyQueryUsing(fn (Builder $query) => $query->whereIn('status', ['Disetujui', 'Ditolak'])),
-    ];
-}
+    protected function getHeaderActions(): array
+    {
+        return [
+            // Kita tidak ingin admin membuat pengajuan baru dari sini
+            // Actions\CreateAction::make(),
+        ];
+    }
+    
+    // TAMBAHKAN METHOD INI
+    public function getTabs(): array
+    {
+        return [
+            'all' => ListRecords\Tab::make('Semua'),
+            'waiting_verification' => ListRecords\Tab::make('Menunggu Verifikasi') // F-09
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'Menunggu Verifikasi')),
+            'in_review_operator' => ListRecords\Tab::make('Perlu Diproses Operator') // F-10
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'Sedang Direview')),
+            'waiting_approval' => ListRecords\Tab::make('Menunggu Persetujuan') // F-11
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'Menunggu Persetujuan')),
+            'completed' => ListRecords\Tab::make('Selesai')
+                ->modifyQueryUsing(fn (Builder $query) => $query->whereIn('status', ['Disetujui', 'Ditolak'])),
+        ];
+    }
 }
