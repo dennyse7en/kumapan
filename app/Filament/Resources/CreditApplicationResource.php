@@ -19,6 +19,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Tables\Actions\Action; // Untuk aksi kustom
+use Illuminate\Support\Facades\Auth;
 
 class CreditApplicationResource extends Resource
 {
@@ -32,10 +33,6 @@ class CreditApplicationResource extends Resource
         return $form
             ->schema([
                 Card::make()->schema([
-                    Grid::make(2)->schema([
-                        TextInput::make('user.name')->label('Nama Pengaju')->disabled(),
-                        TextInput::make('user.email')->label('Email Pengaju')->disabled(),
-                    ]),
                     Grid::make(2)->schema([
                         TextInput::make('full_name')->label('Nama Lengkap Sesuai KTP')->disabled(),
                         TextInput::make('nik')->label('NIK')->disabled(),
@@ -66,6 +63,14 @@ class CreditApplicationResource extends Resource
                         })
                         // GANTI $option MENJADI $value DI SINI
                         ->disableOptionWhen(function (string $value, ?CreditApplication $record): bool {
+                            $loggedInUser = Auth::user();
+
+                            // === LOGIKA UNTUK VERIFIKATOR (Kode yang Benar) ===
+                            if ($loggedInUser->hasRole('verifikator')) {
+                                // Ubah di sini: Izinkan 'Sedang Direview' dan 'Ditolak' sesuai alur F-09
+                                return !in_array($value, ['Sedang Direview', 'Ditolak']);
+                            }
+
                             // Logika hanya berjalan untuk pilihan 'Lunas'
                             if ($value !== 'Lunas' || !$record) {
                                 return false;
@@ -109,7 +114,7 @@ class CreditApplicationResource extends Resource
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
+                // Tables\Actions\DeleteBulkAction::make(),
             ]);
     }
 
