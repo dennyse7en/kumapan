@@ -5,10 +5,14 @@ use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\CreditApplicationController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TrackingController;
+use App\Models\SiteSetting;
+use App\Models\WelcomeImage;
 
 Route::get('/', function () {
-    return view('welcome');
-});
+    $images = WelcomeImage::where('is_active', true)->orderBy('order_column')->get();
+
+    return view('welcome', ['images' => $images]);
+})->name('welcome');
 
 // Rute untuk menampilkan form pelacakan
 Route::get('/track', [TrackingController::class, 'showForm'])->name('track.form');
@@ -39,4 +43,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
