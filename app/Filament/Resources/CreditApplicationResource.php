@@ -64,26 +64,45 @@ class CreditApplicationResource extends Resource
                         // GANTI $option MENJADI $value DI SINI
                         ->disableOptionWhen(function (string $value, ?CreditApplication $record): bool {
                             $loggedInUser = Auth::user();
+                            $currentStatus = $record->status;
+                            $allowed = [];
 
                             // === LOGIKA UNTUK VERIFIKATOR (Kode yang Benar) ===
-                            if ($loggedInUser->hasRole('verifikator')) {
-                                // Ubah di sini: Izinkan 'Sedang Direview' dan 'Ditolak' sesuai alur F-09
-                                return !in_array($value, ['Sedang Direview', 'Ditolak']);
-                            }
-
-                            // Logika hanya berjalan untuk pilihan 'Lunas'
-                            if ($value !== 'Lunas' || !$record) {
+                            if ($loggedInUser->hasRole('Super Admin')) {
                                 return false;
+                            } else if ($loggedInUser->hasRole('verifikator')) {
+                                // Dari 'Menunggu Verifikasi', boleh ke 'Sedang Direview' atau 'Ditolak'
+                                if ($currentStatus === 'Menunggu Verifikasi') {
+                                    $allowed = ['Sedang Direview', 'Ditolak'];
+                                }
+                                // Dari 'Disetujui', setelah 30 hari, boleh ke 'Lunas'
+                                if ($currentStatus === 'Disetujui' && $record->approved_at?->lt(Carbon::now()->subDays(30))) {
+                                    $allowed[] = 'Lunas';
+                                }
+                            } else if ($loggedInUser->hasRole('operator')) {
+                                if ($currentStatus === 'Sedang Direview') {
+                                    $allowed = ['Menunggu Persetujuan', 'Ditolak'];
+                                }
+                            } else if ($loggedInUser->hasRole('approver')) {
+                                // Ubah di sini: Izinkan 'Sedang Direview' dan 'Ditolak' sesuai alur F-09
+                                if ($currentStatus === 'Menunggu Persetujuan') {
+                                    $allowed = ['Disetujui', 'Ditolak'];
+                                }
                             }
+                            return !in_array($value, $allowed);
+                            // Logika hanya berjalan untuk pilihan 'Lunas'
+                            // if ($value !== 'Lunas' || !$record) {
+                            //     return false;
+                            // }
 
                             // Nonaktifkan "Lunas" jika status saat ini bukan "Disetujui"
                             // atau jika tanggal persetujuan belum lewat 30 hari
-                            return $record->status !== 'Disetujui' ||
-                                (is_null($record->approved_at) || $record->approved_at->gt(Carbon::now()->subDays(30)));
+                            // return $record->status !== 'Disetujui' ||
+                            //     (is_null($record->approved_at) || $record->approved_at->gt(Carbon::now()->subDays(30)));
                         }),
-                    Forms\Components\DateTimePicker::make('approved_at')
-                        ->label('Tanggal Persetujuan')
-                        ->disabled(),
+                    // Forms\Components\DateTimePicker::make('approved_at')
+                    //     ->label('Tanggal Persetujuan')
+                    //     ->disabled(),
                 ])
             ]);
     }

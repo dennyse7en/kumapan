@@ -3,6 +3,9 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use App\Models\CreditApplication;
+use App\Observers\CreditApplicationObserver;
+use Illuminate\Auth\Events\Registered;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -13,6 +16,10 @@ class AppServiceProvider extends ServiceProvider
     {
         //
     }
+
+    protected $observers = [
+        CreditApplication::class => [CreditApplicationObserver::class],
+    ];
 
     /**
      * Bootstrap any application services.

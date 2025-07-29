@@ -8,6 +8,7 @@ use App\Filament\Resources\CreditApplicationResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 use Illuminate\Database\Eloquent\Builder; // Import class Builder
+use Illuminate\Support\Facades\Auth;
 
 class ListCreditApplications extends ListRecords
 {
@@ -20,20 +21,38 @@ class ListCreditApplications extends ListRecords
             // Actions\CreateAction::make(),
         ];
     }
-    
+
     // TAMBAHKAN METHOD INI
     public function getTabs(): array
     {
-        return [
-            'all' => ListRecords\Tab::make('Semua'),
-            'waiting_verification' => ListRecords\Tab::make('Menunggu Verifikasi') // F-09
-                ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'Menunggu Verifikasi')),
-            'in_review_operator' => ListRecords\Tab::make('Perlu Diproses Operator') // F-10
-                ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'Sedang Direview')),
-            'waiting_approval' => ListRecords\Tab::make('Menunggu Persetujuan') // F-11
-                ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'Menunggu Persetujuan')),
-            'completed' => ListRecords\Tab::make('Selesai')
-                ->modifyQueryUsing(fn (Builder $query) => $query->whereIn('status', ['Disetujui', 'Ditolak'])),
-        ];
+        $user = Auth::user();
+        $tabs = [];
+
+        // Untuk Verifikator
+        if ($user->hasRole(['verifikator', 'operator', 'Super Admin'])) {
+            $tabs['waiting_verification'] = ListRecords\Tab::make('Menunggu Verifikasi')
+                ->modifyQueryUsing(fn(Builder $query) => $query->where('status', 'Menunggu Verifikasi'));
+        }
+
+        // Untuk Operator
+        if ($user->hasRole(['operator', 'Super Admin'])) {
+            $tabs['in_review_operator'] = ListRecords\Tab::make('Perlu Diproses Operator')
+                ->modifyQueryUsing(fn(Builder $query) => $query->where('status', 'Sedang Direview'));
+        }
+
+        // Untuk Approver dan Operator
+        if ($user->hasRole(['approver', 'operator', 'Super Admin'])) {
+            $tabs['waiting_approval'] = ListRecords\Tab::make('Menunggu Persetujuan')
+                ->modifyQueryUsing(fn(Builder $query) => $query->where('status', 'Menunggu Persetujuan'));
+        }
+
+        // Untuk Operator
+        if ($user->hasRole(['operator', 'Super Admin'])) {
+            $tabs['completed'] = ListRecords\Tab::make('Selesai')
+                ->modifyQueryUsing(fn(Builder $query) => $query->whereIn('status', ['Disetujui', 'Ditolak', 'Lunas']));
+        }
+        // Tab "Semua" selalu tersedia untuk semua peran internal
+        $tabs['all'] = ListRecords\Tab::make('Semua');
+        return $tabs;
     }
 }
