@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -48,10 +49,12 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
+    // ...
+
     /**
-     * Get all of the credit applications for the User.
+     * Mendapatkan semua pengajuan kredit milik user ini.
      */
-    public function creditApplications()
+    public function creditApplications(): HasMany
     {
         return $this->hasMany(CreditApplication::class);
     }

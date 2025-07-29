@@ -10,18 +10,12 @@ class CreditApplication extends Model
 {
     use HasFactory;
 
-    /*
+    // Izinkan pengisian massal untuk kolom-kolom ini
+    protected $guarded = ['id'];
 
-The attributes that are mass assignable.
-
-@var array
-
-/*
-
-Mendefinisikan relasi bahwa setiap CreditApplication 'milik' satu User.
-
-Ini akan menyelesaikan error "Undefined method 'user'".
-*/
+    /**
+     * Mendapatkan user yang memiliki pengajuan kredit ini.
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

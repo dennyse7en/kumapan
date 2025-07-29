@@ -12,46 +12,33 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('credit_applications', function (Blueprint $table) {
-            $table->id();
-            $table->string('submission_id')->unique(); // ID unik spt KRD-00123
-            $table->foreignId('user_id')->constrained()->onDelete('cascade'); // Relasi ke tabel users
-            // === Data Diri Pemohon ===
-            $table->string('ktp_number');
-            $table->string('ktp_photo_path');
-            $table->text('address');
-            $table->string('phone_number');
+        $table->id();
+        $table->foreignId('user_id')->constrained()->onDelete('cascade');
 
-            // === Data Usaha Pemohon ===
-            $table->string('business_name');
-            $table->string('business_type');
-            $table->integer('business_age_months');
-            $table->bigInteger('monthly_revenue');
-            $table->text('business_address');
+        // Bagian: Data Diri (Contoh)
+        $table->string('full_name');
+        $table->string('nik')->unique();
+        $table->string('phone_number');
+        $table->text('address');
 
-            // === Detail Pengajuan Kredit ===
-            $table->bigInteger('amount_requested');
-            $table->integer('tenor_months');
-            $table->string('loan_purpose');
+        // Bagian: Data Usaha (Contoh)
+        $table->string('business_name');
+        $table->text('business_address');
+        $table->string('business_type');
 
-            // === Dokumen dari Pemohon ===
-            $table->string('business_photo_path');
-            $table->string('business_document_path')->nullable();
-            $table->string('bank_statement_path')->nullable();
+        // Bagian: Detail Pengajuan
+        $table->decimal('amount', 15, 2); // Jumlah pinjaman
+        $table->integer('tenor'); // Jangka waktu dalam bulan
 
-            // === Kolom untuk Alur Kerja (Status & Catatan) ===
-            $table->string('status')->default('Menunggu Verifikasi');
-            
-            // Kolom untuk Verifikator
-            $table->text('verification_notes')->nullable();
-            $table->string('verification_document_path')->nullable();
+        // Bagian: Upload Dokumen
+        $table->string('ktp_path');
+        $table->string('business_photo_path');
 
-            // Kolom untuk Operator
-            $table->text('operator_notes')->nullable();
-            
-            // Kolom untuk Approver
-            $table->text('approver_notes')->nullable();
+        // Status Pengajuan
+        $table->string('status')->default('Menunggu Verifikasi');
+        $table->text('notes')->nullable(); // Untuk catatan dari tim internal
 
-            $table->timestamps();
+        $table->timestamps();
         });
     }
 

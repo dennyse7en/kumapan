@@ -1,29 +1,26 @@
 <?php
 
+// app/Http/Controllers/CreditApplicationController.php
+
 namespace App\Http\Controllers;
 
-use App\Models\CreditApplication;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 
 class CreditApplicationController extends Controller
 {
     /**
-     * Display a listing of the user's credit applications.
+     * Menampilkan dashboard dengan riwayat pengajuan kredit. (F-06)
      */
     public function index()
     {
-        // Ambil semua pengajuan kredit milik user yang sedang login, urutkan dari yang terbaru
-        $applications = CreditApplication::where('user_id', Auth::id())
-            ->latest()
-            ->paginate(10);
+        $applications = Auth::user()->creditApplications()->latest()->get();
 
-        return view('credit.dashboard', ['applications' => $applications]);
+        return view('dashboard', ['applications' => $applications]);
     }
 
     /**
-     * Show the form for creating a new credit application.
+     * Menampilkan formulir untuk membuat pengajuan baru. (F-07)
      */
     public function create()
     {
@@ -31,66 +28,32 @@ class CreditApplicationController extends Controller
     }
 
     /**
-     * Store a newly created credit application in storage.
+     * Menyimpan pengajuan kredit baru ke database.
      */
     public function store(Request $request)
     {
-        // 1. Validasi data input dari form
-        $validatedData = $request->validate([
-            'ktp_number' => 'required|numeric|digits:16',
-            'ktp_photo' => 'required|image|mimes:jpeg,png,jpg|max:2048',
-            'address' => 'required|string|max:1000',
+        // Validasi input
+        $validated = $request->validate([
+            'full_name' => 'required|string|max:255',
+            'nik' => 'required|string|digits:16|unique:credit_applications',
             'phone_number' => 'required|string|max:15',
+            'address' => 'required|string',
             'business_name' => 'required|string|max:255',
+            'business_address' => 'required|string',
             'business_type' => 'required|string|max:255',
-            'business_age_months' => 'required|integer|min:1',
-            'monthly_revenue' => 'required|integer|min:0',
-            'business_address' => 'required|string|max:1000',
-            'amount_requested' => 'required|integer|min:100000',
-            'tenor_months' => 'required|integer',
-            'loan_purpose' => 'required|string|max:255',
-            'business_photo' => 'required|image|mimes:jpeg,png,jpg|max:2048',
-            'business_document' => 'nullable|file|mimes:pdf|max:2048',
-            'bank_statement' => 'nullable|file|mimes:pdf|max:2048',
+            'amount' => 'required|numeric|min:100000',
+            'tenor' => 'required|integer|in:6,12,18,24',
+            'ktp_path' => 'required|image|mimes:jpeg,png,jpg|max:2048', // F-07: Upload KTP
+            'business_photo_path' => 'required|image|mimes:jpeg,png,jpg|max:2048', // F-07: Upload Foto Usaha
         ]);
 
-        // 2. Handle file uploads
-        $ktpPhotoPath = $request->file('ktp_photo')->store('documents/ktp', 'public');
-        $businessPhotoPath = $request->file('business_photo')->store('documents/business_photos', 'public');
-        
-        $businessDocumentPath = null;
-        if ($request->hasFile('business_document')) {
-            $businessDocumentPath = $request->file('business_document')->store('documents/business_legal', 'public');
-        }
+        // Proses upload file
+        $validated['ktp_path'] = $request->file('ktp_path')->store('ktp_images', 'public');
+        $validated['business_photo_path'] = $request->file('business_photo_path')->store('business_photos', 'public');
 
-        $bankStatementPath = null;
-        if ($request->hasFile('bank_statement')) {
-            $bankStatementPath = $request->file('bank_statement')->store('documents/bank_statements', 'public');
-        }
+        // Simpan data menggunakan relasi
+        Auth::user()->creditApplications()->create($validated);
 
-        // 3. Buat record baru di database
-        CreditApplication::create([
-            'user_id' => Auth::id(),
-            'submission_id' => 'KRD-' . strtoupper(Str::random(8)),
-            'ktp_number' => $validatedData['ktp_number'],
-            'ktp_photo_path' => $ktpPhotoPath,
-            'address' => $validatedData['address'],
-            'phone_number' => $validatedData['phone_number'],
-            'business_name' => $validatedData['business_name'],
-            'business_type' => $validatedData['business_type'],
-            'business_age_months' => $validatedData['business_age_months'],
-            'monthly_revenue' => $validatedData['monthly_revenue'],
-            'business_address' => $validatedData['business_address'],
-            'amount_requested' => $validatedData['amount_requested'],
-            'tenor_months' => $validatedData['tenor_months'],
-            'loan_purpose' => $validatedData['loan_purpose'],
-            'business_photo_path' => $businessPhotoPath,
-            'business_document_path' => $businessDocumentPath,
-            'bank_statement_path' => $bankStatementPath,
-            'status' => 'Menunggu Verifikasi', // Status awal
-        ]);
-
-        // 4. Redirect kembali ke dashboard dengan pesan sukses
-        return redirect()->route('credit.dashboard')->with('success', 'Pengajuan kredit Anda berhasil dikirim!');
+        return redirect()->route('create.dashboard')->with('success', 'Pengajuan kredit Anda berhasil dikirim!');
     }
 }
