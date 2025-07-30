@@ -30,7 +30,7 @@ Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->
 Route::middleware(['auth', 'verified'])->group(function () {
 
     // Rute dashboard bawaan dari Breeze
-    Route::get('/dashboard', [CreditApplicationController::class, 'index'])->name('create.dashboard');
+    Route::get('/dashboard', [CreditApplicationController::class, 'index'])->name('dashboard');
 
     // Rute untuk fitur pengajuan kredit oleh 'pengguna'
     Route::get('/kredit/dashboard', [CreditApplicationController::class, 'index'])->name('credit.dashboard');
