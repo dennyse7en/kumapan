@@ -6,9 +6,14 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\CreditApplication;
+use App\Rules\ValidNik; // Import ValidNik rule
 
 class CreditApplicationController extends Controller
 {
+    // Definisikan status selesai di satu tempat agar mudah diubah
+    private $finishedStatuses = ['Ditolak', 'Lunas', 'Dibatalkan'];
+
     /**
      * Menampilkan dashboard dengan riwayat pengajuan kredit. (F-06)
      */
@@ -18,7 +23,7 @@ class CreditApplicationController extends Controller
         $applications = Auth::user()->creditApplications()->latest()->get();
 
         $activeApplicationExists = $user->creditApplications()
-            ->whereNotIn('status', ['Ditolak', 'Lunas']) // Status yang dianggap selesai
+            ->whereNotIn('status', $this->finishedStatuses) // Status yang dianggap selesai
             ->exists();
 
         return view('dashboard', [
@@ -33,7 +38,7 @@ class CreditApplicationController extends Controller
     public function create()
     {
         $activeApplicationExists = Auth::user()->creditApplications()
-            ->whereNotIn('status', ['Ditolak', 'Lunas'])
+            ->whereNotIn('status', $this->finishedStatuses)
             ->exists();
 
         if ($activeApplicationExists) {
@@ -50,7 +55,7 @@ class CreditApplicationController extends Controller
     public function store(Request $request)
     {
         $activeApplicationExists = Auth::user()->creditApplications()
-            ->whereNotIn('status', ['Ditolak', 'Lunas'])
+            ->whereNotIn('status', $this->finishedStatuses)
             ->exists();
 
         if ($activeApplicationExists) {
@@ -59,7 +64,7 @@ class CreditApplicationController extends Controller
         // Validasi input
         $validated = $request->validate([
             'full_name' => 'required|string|max:255',
-            'nik' => 'required|string|digits:16|unique:credit_applications',
+            'nik' => ['required', 'string', 'digits:16', 'unique:credit_applications', new ValidNik],
             'phone_number' => 'required|string|max:15',
             'address' => 'required|string',
             'business_name' => 'required|string|max:255',
@@ -78,6 +83,42 @@ class CreditApplicationController extends Controller
         // Simpan data menggunakan relasi
         Auth::user()->creditApplications()->create($validated);
 
-        return redirect()->route('create.dashboard')->with('success', 'Pengajuan kredit Anda berhasil dikirim!');
+        return redirect()->route('dashboard')->with('success', 'Pengajuan kredit Anda berhasil dikirim!');
+    }
+
+    public function show(CreditApplication $application)
+    {
+        // Pastikan user hanya bisa melihat pengajuannya sendiri
+        if (Auth::id() !== $application->user_id) {
+            abort(403);
+        }
+
+        // Eager load relasi history
+        $application->load('histories');
+
+        return view('credit.show', ['application' => $application]);
+    }
+
+    /**
+     * Membatalkan pengajuan kredit.
+     */
+    public function cancel(Request $request, CreditApplication $application)
+    {
+        // 1. Pastikan user hanya bisa membatalkan miliknya sendiri
+        if (Auth::id() !== $application->user_id) {
+            abort(403);
+        }
+
+        // 2. Validasi status
+        if (in_array($application->status, ['Disetujui', 'Ditolak', 'Lunas', 'Dibatalkan'])) {
+            return back()->with('error', 'Pengajuan ini tidak dapat dibatalkan.');
+        }
+
+        // 3. Update status dan catatan
+        $application->status = 'Dibatalkan';
+        $application->notes = $request->input('cancellation_reason', 'Dibatalkan oleh pengguna.');
+        $application->save();
+
+        return redirect()->route('dashboard')->with('success', 'Pengajuan berhasil dibatalkan.');
     }
 }

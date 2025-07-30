@@ -36,6 +36,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/kredit/dashboard', [CreditApplicationController::class, 'index'])->name('credit.dashboard');
     Route::get('/kredit/create', [CreditApplicationController::class, 'create'])->name('credit.create');
     Route::post('/kredit/store', [CreditApplicationController::class, 'store'])->name('credit.store');
+    Route::get('/credit-applications/{application}', [CreditApplicationController::class, 'show'])->name('credit.show');
+    Route::patch('/credit-applications/{application}/cancel', [CreditApplicationController::class, 'cancel'])->name('credit.cancel');
 
     // Rute untuk manajemen profil user
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
