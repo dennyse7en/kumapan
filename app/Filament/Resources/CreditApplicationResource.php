@@ -51,7 +51,6 @@ class CreditApplicationResource extends Resource
                             'Menunggu Persetujuan' => 'Menunggu Persetujuan',
                             'Disetujui' => 'Disetujui',
                             'Ditolak' => 'Ditolak',
-                            // ... opsi status ...
                             'Lunas' => 'Lunas',
                         ])
                         ->required()

@@ -44,7 +44,8 @@
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead>
                                 <tr>
-                                    <th class="px-6 py-3 ...">ID</th>
+                                    <th class="px-6 py-3 ...">No</th>
+                                    <th class="px-6 py-3 ...">Tracking Code</th>
                                     <th class="px-6 py-3 ...">Tanggal</th>
                                     <th class="px-6 py-3 ...">Jumlah</th>
                                     <th class="px-6 py-3 ...">Status</th>
@@ -54,7 +55,8 @@
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @forelse ($applications as $app)
                                     <tr>
-                                        <td class="px-6 py-4 ...">#{{ $app->id }}</td>
+                                        <td class="px-6 py-4 ...">{{ $loop->iteration }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-700">{{ $app->tracking_code }}</td>
                                         <td class="px-6 py-4 ...">{{ $app->created_at->format('d M Y') }}</td>
                                         <td class="px-6 py-4 ...">Rp {{ number_format($app->amount, 0, ',', '.') }}</td>
                                         <td class="px-6 py-4 ...">

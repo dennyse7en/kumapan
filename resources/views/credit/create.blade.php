@@ -97,15 +97,35 @@
 
                         <h3 class="text-lg font-medium mb-4 border-b pb-2">Upload Dokumen</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                            <div>
-                                <label for="ktp_path" class="block font-medium text-sm text-gray-700">Foto KTP</label>
-                                <input id="ktp_path" name="ktp_path" type="file" class="block mt-1 w-full" required>
+                            <div x-data="{ previewUrl: '' }">
+                                <label for="ktp_path" class="block font-medium text-sm text-gray-700">Foto
+                                    KTP</label>
+                                <input id="ktp_path" name="ktp_path" type="file" accept="image/*"
+                                    @change="previewUrl = URL.createObjectURL($event.target.files[0])"
+                                    class="block mt-1 w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"
+                                    required>
+
+                                <template x-if="previewUrl">
+                                    <div class="mt-4">
+                                        <img :src="previewUrl" class="rounded-md w-full h-auto object-cover">
+                                    </div>
+                                </template>
                             </div>
-                            <div>
+
+                            <div x-data="{ previewUrl: '' }">
                                 <label for="business_photo_path" class="block font-medium text-sm text-gray-700">Foto
                                     Tempat Usaha</label>
                                 <input id="business_photo_path" name="business_photo_path" type="file"
-                                    class="block mt-1 w-full" required>
+                                    accept="image/*"
+                                    @change="previewUrl = URL.createObjectURL($event.target.files[0])"
+                                    class="block mt-1 w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"
+                                    required>
+
+                                <template x-if="previewUrl">
+                                    <div class="mt-4">
+                                        <img :src="previewUrl" class="rounded-md w-full h-auto object-cover">
+                                    </div>
+                                </template>
                             </div>
                         </div>
 

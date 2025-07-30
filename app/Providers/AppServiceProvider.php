@@ -17,9 +17,9 @@ class AppServiceProvider extends ServiceProvider
         //
     }
 
-    protected $observers = [
-        CreditApplication::class => [CreditApplicationObserver::class],
-    ];
+    // protected $observers = [
+    //     CreditApplication::class => [CreditApplicationObserver::class],
+    // ];
 
     /**
      * Bootstrap any application services.
