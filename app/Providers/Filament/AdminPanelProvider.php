@@ -30,7 +30,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
-            ->defaultUrl(CreditApplicationResource::getUrl('index'))
+            ->homeUrl(fn () => CreditApplicationResource::getUrl('index'))
             ->favicon(asset(env('APP_LOGO')))
             ->brandLogo(asset(env('APP_LOGO')))
             ->colors([
@@ -42,10 +42,7 @@ class AdminPanelProvider extends PanelProvider
                 Pages\Dashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
-            ->widgets([
-                Widgets\AccountWidget::class,
-                Widgets\FilamentInfoWidget::class,
-            ])
+            ->widgets([])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

@@ -7,6 +7,9 @@ use App\Models\CreditApplication;
 use App\Observers\CreditApplicationObserver;
 use Illuminate\Auth\Events\Registered;
 
+use App\Http\Responses\LoginResponse;
+use Filament\Http\Responses\Auth\Contracts\LoginResponse as LoginResponseContract;
+
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -15,6 +18,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         //
+        $this->app->bind(LoginResponseContract::class, LoginResponse::class);
     }
 
     // protected $observers = [
