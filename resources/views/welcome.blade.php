@@ -28,7 +28,7 @@
 <body class="font-sans antialiased text-gray-900">
     <div class="min-h-screen grid grid-cols-1 lg:grid-cols-[67%_33%]">
         <div class="flex flex-col items-center justify-center p-6 sm:p-12 lg:order-last"
-            style="background-color: #6648b0;" x-data="{ isRegistering: true }" x-cloak>
+            style="background-color: #6648b0;"  x-data="{ isRegistering: @json(!$errors->has('email')) }" x-cloak>
             <div class="w-full max-w-md">
                 <div class="flex justify-center mb-8">
                     <img src="{{ asset(env('APP_LOGO', '')) }}" alt="Logo Aplikasi" class="h-24 w-auto">
@@ -66,6 +66,11 @@
 
                 <div x-show="!isRegistering">
                     <h1 class="text-3xl font-bold mb-4 text-white">Masuk</h1>
+                    @if ($errors->has('email'))
+                        <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                            <span>{{ $errors->first('email') }}</span>
+                        </div>
+                    @endif
                     <form method="POST" action="{{ route('login') }}" class="space-y-4">
                         @csrf
                         <input id="email" placeholder="Email"
