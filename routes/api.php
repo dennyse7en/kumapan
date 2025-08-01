@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CreditApplicationApiController;
 use App\Http\Controllers\Api\TrackingApiController;
+use App\Http\Controllers\Api\Admin\StatusUpdateController; 
 
 // Rute Publik (tidak perlu login)
 Route::post('/register', [AuthController::class, 'register']);
@@ -24,4 +25,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/credit-applications/{id}', [CreditApplicationApiController::class, 'show']);
 
     // Kita akan menambahkan rute pengajuan kredit di sini nanti
+});
+
+Route::middleware(['auth:sanctum', 'role:Super Admin|verifikator|operator|approver'])
+    ->prefix('admin') // Kita beri awalan /admin
+    ->name('admin.')
+    ->group(function () {
+        
+        // 2. Tambahkan rute ini
+        Route::patch('/credit-applications/{application}/status', [StatusUpdateController::class, 'updateStatus'])
+            ->name('credit-applications.update-status');
 });
